@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Godstime Tournament</title>
+
+<style>
+body { font-family: Arial; background:#0d1117; color:white; text-align:center; }
+.container { max-width:600px; margin:auto; background:#161b22; padding:20px; border-radius:10px; }
+input, select { width:100%; padding:10px; margin:8px 0; border-radius:5px; border:none; }
+button { padding:10px; margin:5px; border:none; border-radius:5px; cursor:pointer; }
+#registration, #admin { display:none; }
+
+table { width:100%; margin-top:20px; border-collapse:collapse; }
+th, td { border:1px solid #58a6ff; padding:8px; }
+th { background:#238636; }
+tr:hover { background:#1f6feb; }
+
+.club {
+display:flex;
+align-items:center;
+gap:8px;
+justify-content:center;
+}
+
+.club img {
+width:25px;
+height:25px;
+}
+
+option:disabled { background:#555; color:#aaa; }
+</style>
+
+</head>
+<body>
+
+<h1>⚽ Godstime Tournament</h1>
+
+<button onclick="show('registration')">Register</button>
+<button onclick="adminLogin()">Admin</button>
+
+<div id="registration" class="container">
+<form onsubmit="register(event)">
+<input type="text" id="name" placeholder="Name" required>
+<input type="email" id="email" placeholder="Email" required>
+
+<select id="country">
+<option>Nigeria</option>
+<option>South Africa</option>
+<option>Uganda</option>
+<option>Tanzania</option>
+<option>Kenya</option>
+<option>Ghana</option>
+</select>
+
+<input type="text" id="phone" placeholder="Phone">
+
+<select id="team">
+<option>Chelsea</option>
+<option>Man U</option>
+<option>Man City</option>
+<option>Liverpool</option>
+<option>PSG</option>
+<option>AC Milan</option>
+<option>Real Madrid</option>
+<option>Barcelona</option>
+<option>Arsenal</option>
+<option>Dortmund</option>
+<option>Nigeria</option>
+<option>South Africa</option>
+<option>Uganda</option>
+<option>Tanzania</option>
+<option>Kenya</option>
+<option>Ghana</option>
+</select>
+
+<button type="submit">Register</button>
+</form>
+</div>
+
+<div id="admin" class="container">
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Name</th>
+<th>Email</th>
+<th>Country</th>
+<th>Club</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+
+<button onclick="clearData()">Clear All</button>
+</div>
+
+<script>
+
+// Club logos
+const logos = {
+"Chelsea":"https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg",
+"Man U":"https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
+"Man City":"https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg",
+"Liverpool":"https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg",
+"PSG":"https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg",
+"AC Milan":"https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg",
+"Real Madrid":"https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
+"Barcelona":"https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
+"Arsenal":"https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg",
+"Dortmund":"https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg"
+};
+
+function show(id){
+document.getElementById("registration").style.display="none";
+document.getElementById("admin").style.display="none";
+document.getElementById(id).style.display="block";
+if(id==="admin") load();
+}
+
+function adminLogin(){
+let u = prompt("Username");
+let p = prompt("Password");
+
+if(u==="GT0021" && p==="Godstime@1"){
+show("admin");
+}else{
+alert("Wrong login");
+}
+}
+
+// Disable taken teams
+function updateTeams(){
+let all = JSON.parse(localStorage.getItem("regs")) || [];
+let taken = all.map(r => r.team);
+
+document.querySelectorAll("#team option").forEach(opt=>{
+if(taken.includes(opt.value)){
+opt.disabled = true;
+opt.textContent = opt.value + " (Taken)";
+}else{
+opt.disabled = false;
+opt.textContent = opt.value;
+}
+});
+}
+
+function register(e){
+e.preventDefault();
+
+let nameInput = document.getElementById("name");
+let emailInput = document.getElementById("email");
+let countryInput = document.getElementById("country");
+let phoneInput = document.getElementById("phone");
+let teamInput = document.getElementById("team");
+
+let selectedTeam = teamInput.value;
+let all = JSON.parse(localStorage.getItem("regs")) || [];
+
+// Prevent duplicate
+if(all.some(p => p.team === selectedTeam)){
+alert("❌ Team already taken!");
+return;
+}
+
+let data = {
+name: nameInput.value,
+email: emailInput.value,
+country: countryInput.value,
+phone: phoneInput.value,
+team: selectedTeam
+};
+
+all.push(data);
+localStorage.setItem("regs", JSON.stringify(all));
+
+alert("✅ Registered!");
+e.target.reset();
+updateTeams();
+}
+
+function load(){
+let table = document.getElementById("table");
+table.innerHTML="";
+
+let all = JSON.parse(localStorage.getItem("regs")) || [];
+
+all.forEach((r,i)=>{
+let logo = logos[r.team] ? `<img src="${logos[r.team]}">` : "";
+let row = `<tr>
+<td>#${i+1}</td>
+<td>${r.name}</td>
+<td>${r.email}</td>
+<td>${r.country}</td>
+<td class="club">${logo} ${r.team}</td>
+</tr>`;
+table.innerHTML += row;
+});
+}
+
+function clearData(){
+localStorage.removeItem("regs");
+load();
+updateTeams();
+}
+
+// Init
+updateTeams();
+show("registration");
+
+</script>
+
+</body>
+</html>
