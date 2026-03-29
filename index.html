@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Godstime Tournament</title>
+
+<style>
+body { font-family: Arial; background:#0d1117; color:white; text-align:center; }
+
+.container {
+  max-width:600px;
+  margin:15px auto;
+  background:#161b22;
+  padding:20px;
+  border-radius:10px;
+}
+
+input, select, textarea {
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:5px;
+  border:none;
+}
+
+button {
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+#admin { display:none; }
+
+table {
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+}
+
+th, td {
+  border:1px solid #58a6ff;
+  padding:8px;
+}
+
+th { background:#238636; }
+
+option:disabled {
+  background:#555;
+  color:#aaa;
+}
+</style>
+
+</head>
+<body>
+
+<h1>⚽ Godstime Tournament</h1>
+
+<button onclick="showAdmin()">Admin</button>
+
+<div class="container">
+<h2>Registration + Payment</h2>
+
+<form id="form">
+
+<h3>🧾 Registration</h3>
+
+<input type="text" id="name" placeholder="Name" required>
+<input type="email" id="email" placeholder="Email" required>
+
+<select id="country">
+<option>Nigeria</option>
+<option>South Africa</option>
+<option>Uganda</option>
+<option>Tanzania</option>
+<option>Kenya</option>
+<option>Ghana</option>
+</select>
+
+<input type="text" id="phone" placeholder="Phone" value="+234" required>
+
+<select id="team">
+<option>Chelsea</option>
+<option>Man U</option>
+<option>Man City</option>
+<option>Liverpool</option>
+<option>PSG</option>
+<option>AC Milan</option>
+<option>Real Madrid</option>
+<option>Barcelona</option>
+<option>Arsenal</option>
+<option>Dortmund</option>
+<option>Nigeria</option>
+<option>South Africa</option>
+<option>Uganda</option>
+<option>Tanzania</option>
+<option>Kenya</option>
+<option>Ghana</option>
+</select>
+
+<hr>
+
+<h3>🏦 Disbursement</h3>
+
+<input type="text" id="bankName" placeholder="Bank Name" required>
+<input type="text" id="accountNumber" placeholder="Account Number" required>
+<input type="text" id="accountName" placeholder="Account Name" required>
+
+<hr>
+
+<h3>📅 Match Details (Optional)</h3>
+
+<textarea id="matchDetails" placeholder="Enter match details"></textarea>
+
+<button type="submit">Submit Registration</button>
+
+</form>
+</div>
+
+<div id="admin" class="container">
+<h2>Admin Dashboard</h2>
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Name</th>
+<th>Team</th>
+<th>Country</th>
+</tr>
+</thead>
+
+<tbody id="table"></tbody>
+</table>
+
+<button onclick="clearData()">Clear All</button>
+</div>
+
+<script>
+
+let registrations = JSON.parse(localStorage.getItem("registrations")) || [];
+
+// Disable taken teams
+function updateTeams(){
+let taken = registrations.map(r => r.team);
+
+document.querySelectorAll("#team option").forEach(opt=>{
+if(taken.includes(opt.value)){
+opt.disabled = true;
+opt.textContent = opt.value + " (Taken)";
+}
+});
+}
+
+// FORM SUBMIT
+document.getElementById("form").addEventListener("submit", function(e){
+e.preventDefault();
+
+// Get values
+let nameVal = document.getElementById("name").value;
+let emailVal = document.getElementById("email").value;
+let countryVal = document.getElementById("country").value;
+let phoneVal = document.getElementById("phone").value;
+let teamVal = document.getElementById("team").value;
+
+let bankNameVal = document.getElementById("bankName").value;
+let accountNumberVal = document.getElementById("accountNumber").value;
+let accountNameVal = document.getElementById("accountName").value;
+let matchDetailsVal = document.getElementById("matchDetails").value;
+
+// ❌ Prevent duplicate team
+if(registrations.some(r => r.team === teamVal)){
+alert("❌ Team already taken!");
+return;
+}
+
+// 📲 WhatsApp message
+let message = `
+REGISTRATION
+
+Name: ${nameVal}
+Email: ${emailVal}
+Country: ${countryVal}
+Phone: ${phoneVal}
+Team: ${teamVal}
+
+DISBURSEMENT
+
+Bank: ${bankNameVal}
+Account Number: ${accountNumberVal}
+Account Name: ${accountNameVal}
+
+MATCH DETAILS
+
+${matchDetailsVal || "Not provided"}
+`;
+
+let url = "https://wa.me/2349079820557?text=" + encodeURIComponent(message);
+window.open(url, "_blank");
+
+// 💾 Save locally
+registrations.push({
+name: nameVal,
+email: emailVal,
+country: countryVal,
+phone: phoneVal,
+team: teamVal
+});
+
+localStorage.setItem("registrations", JSON.stringify(registrations));
+
+this.reset();
+updateTeams();
+
+alert("✅ Sent to WhatsApp!");
+});
+
+// ADMIN
+function showAdmin(){
+let u = prompt("Username");
+let p = prompt("Password");
+
+if(u==="GT0021" && p==="Godstime@1"){
+document.getElementById("admin").style.display="block";
+loadAdmin();
+}else{
+alert("Wrong login");
+}
+}
+
+// Load admin table
+function loadAdmin(){
+let table = document.getElementById("table");
+table.innerHTML="";
+
+registrations.forEach((r,i)=>{
+table.innerHTML += `
+<tr>
+<td>#${i+1}</td>
+<td>${r.name}</td>
+<td>${r.team}</td>
+<td>${r.country}</td>
+</tr>
+`;
+});
+}
+
+// Clear storage
+function clearData(){
+localStorage.removeItem("registrations");
+registrations = [];
+loadAdmin();
+updateTeams();
+}
+
+// Init
+updateTeams();
+
+</script>
+
+</body>
+</html>
